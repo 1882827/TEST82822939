@@ -1,6 +1,6 @@
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MlFrvWM/BBLT81/main/BL81827TC", true))()
 
-local window = library:AddWindow("Sad TESTTTT", {
+local window = library:AddWindow("Sad Private V3", {
     main_color = Color3.fromRGB(10, 22, 74),
     min_size = Vector2.new(685, 550),
     can_resize = false,
@@ -21,8 +21,14 @@ end)
 
 local tabCal = window:AddTab("Damage Calculator")
 
-local PACK_MULTIPLIER = 0.5
+--------------------------------------------------
+-- 🔹 Configuração
+--------------------------------------------------
+local PACK_MULTIPLIER = 0.5 -- 50% por pack
 
+--------------------------------------------------
+-- 🔹 Funções
+--------------------------------------------------
 local function parseValue(s)
     if not s then return 0 end
     s = s:upper():gsub("%s", ""):gsub(",", "")
@@ -54,7 +60,6 @@ local function formatValue(n)
     end
 end
 
--- Função para atualizar os labels
 local function updateLabels(base)
     for i = 1, 8 do
         local multiplier = 1 + (PACK_MULTIPLIER * i)
@@ -69,21 +74,27 @@ local function updateLabels(base)
     end
 end
 
--- Criar labels
+--------------------------------------------------
+-- 🔹 Criar Labels e Caixa de Texto
+--------------------------------------------------
 tabCal.labels = {}
 for i = 1, 8 do
     local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
     table.insert(tabCal.labels, lbl)
 end
 
--- Criar input com valor padrão
 local defaultText = "200B"
-tabCal:AddTextBox("Base Damage (Qa, T, B)", function(value)
-    updateLabels(parseValue(value))
-end, {
-    ["clear"] = false,
-    ["text"] = defaultText
+
+-- Criar o textbox
+local inputBox = tabCal:AddTextBox("Base Damage (Qa, T, B)", function() end, {
+    clear = false,
+    text = defaultText
 })
 
--- Calcular automaticamente na abertura
+-- Atualiza conforme digita
+inputBox.Instance:GetPropertyChangedSignal("Text"):Connect(function()
+    updateLabels(parseValue(inputBox.Instance.Text))
+end)
+
+-- Atualiza na abertura
 updateLabels(parseValue(defaultText))
