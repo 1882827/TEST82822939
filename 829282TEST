@@ -1,11 +1,12 @@
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MlFrvWM/BBLT81/main/BL81827TC", true))()
 
-local window = library:AddWindow("Sad Private V3", {
+local window = library:AddWindow("Sad TESTTTT", {
     main_color = Color3.fromRGB(10, 22, 74),
     min_size = Vector2.new(685, 550),
     can_resize = false,
 })
 
+-- Função para mudar fontes
 local function setFontRecursive(guiObject, font)
     for _, obj in pairs(guiObject:GetDescendants()) do
         if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
@@ -20,23 +21,13 @@ spawn(function()
 end)
 
 local tabCal = window:AddTab("Damage Calculator")
+local PACK_MULTIPLIER = 0.5
 
---------------------------------------------------
--- 🔹 Configuração
---------------------------------------------------
-local PACK_MULTIPLIER = 0.5 -- 50% por pack
-
---------------------------------------------------
--- 🔹 Funções
---------------------------------------------------
+-- Converte "200B", "1.5T", "3Qa" para número
 local function parseValue(s)
     if not s then return 0 end
     s = s:upper():gsub("%s", ""):gsub(",", "")
-    local suffixes = {
-        B = 1e9,
-        T = 1e12,
-        QA = 1e15
-    }
+    local suffixes = { B = 1e9, T = 1e12, QA = 1e15 }
     local numPart, suf = s:match("^([%-]?[%d%.]+)(%a*)$")
     if not numPart then return 0 end
     local n = tonumber(numPart) or 0
@@ -46,6 +37,7 @@ local function parseValue(s)
     return n
 end
 
+-- Formata número para string com sufixo
 local function formatValue(n)
     local absn = math.abs(n)
     local sign = n < 0 and "-" or ""
@@ -60,41 +52,45 @@ local function formatValue(n)
     end
 end
 
+-- Atualiza todos os labels
 local function updateLabels(base)
     for i = 1, 8 do
         local multiplier = 1 + (PACK_MULTIPLIER * i)
         local finalValue = base * multiplier
         local percentIncrease = PACK_MULTIPLIER * i * 100
-        tabCal.labels[i]:SetText(string.format(
+        tabCal.labels[i].Text = string.format(
             "%d pack(s): %s (+%d%%)",
             i,
             formatValue(finalValue),
             percentIncrease
-        ))
+        )
     end
 end
 
---------------------------------------------------
--- 🔹 Criar Labels e Caixa de Texto
---------------------------------------------------
+-- Cria os labels
 tabCal.labels = {}
 for i = 1, 8 do
     local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
     table.insert(tabCal.labels, lbl)
 end
 
+-- Valor padrão
 local defaultText = "200B"
+updateLabels(parseValue(defaultText))
 
--- Criar o textbox
-local inputBox = tabCal:AddTextBox("Base Damage (Qa, T, B)", function() end, {
+-- Caixa de texto
+local textBox = tabCal:AddTextBox("Base Damage (Qa, T, B)", function() end, {
     clear = false,
     text = defaultText
 })
 
--- Atualiza conforme digita
-inputBox.Instance:GetPropertyChangedSignal("Text"):Connect(function()
-    updateLabels(parseValue(inputBox.Instance.Text))
+-- Atualização em tempo real
+spawn(function()
+    local lastText = ""
+    while wait(0.1) do
+        if textBox.Text ~= lastText then
+            lastText = textBox.Text
+            updateLabels(parseValue(lastText))
+        end
+    end
 end)
-
--- Atualiza na abertura
-updateLabels(parseValue(defaultText))
