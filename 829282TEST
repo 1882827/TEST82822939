@@ -21,12 +21,8 @@ end)
 
 local tabCal = window:AddTab("Damage Calculator")
 
---------------------------------------------------
--- 🔹 Configuração
---------------------------------------------------
-local PACK_MULTIPLIER = 0.5 -- 50% por pack
+local PACK_MULTIPLIER = 0.5
 
--- Converter string para número (Qa, T, B)
 local function parseValue(s)
     if not s then return 0 end
     s = s:upper():gsub("%s", ""):gsub(",", "")
@@ -44,7 +40,6 @@ local function parseValue(s)
     return n
 end
 
--- Formatar número para Qa, T, B
 local function formatValue(n)
     local absn = math.abs(n)
     local sign = n < 0 and "-" or ""
@@ -59,18 +54,21 @@ local function formatValue(n)
     end
 end
 
---------------------------------------------------
--- 🔹 Interface
---------------------------------------------------
-local baseInput
-baseInput = tabCal:AddTextBox("Base Damage (Qa, T, B)", function(value)
+-- Criar labels primeiro
+tabCal.labels = {}
+for i = 1, 8 do
+    local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
+    table.insert(tabCal.labels, lbl)
+end
+
+-- Criar input depois
+tabCal:AddTextBox("Base Damage (Qa, T, B)", function(value)
     local base = parseValue(value)
     for i = 1, 8 do
         local multiplier = 1 + (PACK_MULTIPLIER * i)
         local finalValue = base * multiplier
         local percentIncrease = PACK_MULTIPLIER * i * 100
 
-        -- Usa SetText para atualizar o label
         tabCal.labels[i]:SetText(string.format(
             "%d pack(s): %s (+%d%%)",
             i,
@@ -82,10 +80,3 @@ end, {
     ["clear"] = false,
     ["text"] = ""
 })
-
--- Cria labels para os resultados
-tabCal.labels = {}
-for i = 1, 8 do
-    local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
-    table.insert(tabCal.labels, lbl)
-end
