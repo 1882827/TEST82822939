@@ -1,0 +1,97 @@
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MlFrvWM/BBLT81/main/BL81827TC", true))()
+
+local window = library:AddWindow("Sad TESTTTT", {
+    main_color = Color3.fromRGB(10, 22, 74),
+    min_size = Vector2.new(685, 550),
+    can_resize = false,
+})
+
+local function setFontRecursive(guiObject, font)
+    for _, obj in pairs(guiObject:GetDescendants()) do
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+            obj.Font = font
+        end
+    end
+end
+
+spawn(function()
+    repeat wait() until window.gui
+    setFontRecursive(window.gui, Enum.Font.GothamSemibold)
+end)
+
+local tabCal = window:AddTab("Damage Calculator")
+
+--------------------------------------------------
+-- 🔹 Funções da Calculadora
+--------------------------------------------------
+
+local PACK_MULTIPLIER = 0.5 -- 50% por pack
+
+-- Converter string para número (Qa, T, B)
+local function parseValue(s)
+    if not s then return 0 end
+    s = s:upper():gsub("%s", ""):gsub(",", "")
+    local suffixes = {
+        B = 1e9,
+        T = 1e12,
+        QA = 1e15
+    }
+    local numPart, suf = s:match("^([%-]?[%d%.]+)(%a*)$")
+    if not numPart then return 0 end
+    local n = tonumber(numPart) or 0
+    if suf ~= "" and suffixes[suf] then
+        return n * suffixes[suf]
+    end
+    return n
+end
+
+-- Formatar número para Qa, T, B
+local function formatValue(n)
+    local absn = math.abs(n)
+    local sign = n < 0 and "-" or ""
+    if absn >= 1e15 then
+        return string.format("%s%.2fQa", sign, absn / 1e15)
+    elseif absn >= 1e12 then
+        return string.format("%s%.2fT", sign, absn / 1e12)
+    elseif absn >= 1e9 then
+        return string.format("%s%.2fB", sign, absn / 1e9)
+    else
+        return string.format("%s%.2f", sign, absn)
+    end
+end
+
+-- Caixa de texto para valor base
+local baseInput = tabCal:AddTextBox("Base Damage (Qa, T, B)", function() end, {
+    ["clear"] = false,
+    ["text"] = ""
+})
+
+-- Labels para exibir resultados
+tabCal.labels = {}
+for i = 1, 8 do
+    local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
+    table.insert(tabCal.labels, lbl)
+end
+
+-- Função para calcular e mostrar
+local function calculate()
+    local base = parseValue(baseInput.text)
+    for i = 1, 8 do
+        local multiplier = 1 + (PACK_MULTIPLIER * i)
+        local value = base * multiplier
+        local percentIncrease = PACK_MULTIPLIER * i * 100
+        tabCal.labels[i].Text = string.format(
+            "%d pack(s): %s (+%d%%)",
+            i,
+            formatValue(value),
+            percentIncrease
+        )
+    end
+end
+
+-- Calcular automaticamente ao apertar Enter
+baseInput.textbox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        calculate()
+    end
+end)
