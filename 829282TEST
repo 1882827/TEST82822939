@@ -75,7 +75,7 @@ end
 
 -- Função para calcular e mostrar
 local function calculate()
-    local base = parseValue(baseInput.text)
+    local base = parseValue(baseInput.textbox.Text) -- 🔹 Corrigido aqui
     for i = 1, 8 do
         local multiplier = 1 + (PACK_MULTIPLIER * i)
         local value = base * multiplier
