@@ -22,9 +22,8 @@ end)
 local tabCal = window:AddTab("Damage Calculator")
 
 --------------------------------------------------
--- 🔹 Funções da Calculadora
+-- 🔹 Configuração
 --------------------------------------------------
-
 local PACK_MULTIPLIER = 0.5 -- 50% por pack
 
 -- Converter string para número (Qa, T, B)
@@ -60,38 +59,33 @@ local function formatValue(n)
     end
 end
 
--- Caixa de texto para valor base
-local baseInput = tabCal:AddTextBox("Base Damage (Qa, T, B)", function() end, {
+--------------------------------------------------
+-- 🔹 Interface
+--------------------------------------------------
+local baseInput
+baseInput = tabCal:AddTextBox("Base Damage (Qa, T, B)", function(value)
+    local base = parseValue(value)
+    for i = 1, 8 do
+        local multiplier = 1 + (PACK_MULTIPLIER * i)
+        local finalValue = base * multiplier
+        local percentIncrease = PACK_MULTIPLIER * i * 100
+
+        -- Usa SetText para atualizar o label
+        tabCal.labels[i]:SetText(string.format(
+            "%d pack(s): %s (+%d%%)",
+            i,
+            formatValue(finalValue),
+            percentIncrease
+        ))
+    end
+end, {
     ["clear"] = false,
     ["text"] = ""
 })
 
--- Labels para exibir resultados
+-- Cria labels para os resultados
 tabCal.labels = {}
 for i = 1, 8 do
     local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
     table.insert(tabCal.labels, lbl)
 end
-
--- Função para calcular e mostrar
-local function calculate()
-    local base = parseValue(baseInput.textbox.Text) -- 🔹 Corrigido aqui
-    for i = 1, 8 do
-        local multiplier = 1 + (PACK_MULTIPLIER * i)
-        local value = base * multiplier
-        local percentIncrease = PACK_MULTIPLIER * i * 100
-        tabCal.labels[i].Text = string.format(
-            "%d pack(s): %s (+%d%%)",
-            i,
-            formatValue(value),
-            percentIncrease
-        )
-    end
-end
-
--- Calcular automaticamente ao apertar Enter
-baseInput.textbox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        calculate()
-    end
-end)
