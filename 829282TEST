@@ -54,21 +54,12 @@ local function formatValue(n)
     end
 end
 
--- Criar labels primeiro
-tabCal.labels = {}
-for i = 1, 8 do
-    local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
-    table.insert(tabCal.labels, lbl)
-end
-
--- Criar input depois
-tabCal:AddTextBox("Base Damage (Qa, T, B)", function(value)
-    local base = parseValue(value)
+-- Função para atualizar os labels
+local function updateLabels(base)
     for i = 1, 8 do
         local multiplier = 1 + (PACK_MULTIPLIER * i)
         local finalValue = base * multiplier
         local percentIncrease = PACK_MULTIPLIER * i * 100
-
         tabCal.labels[i]:SetText(string.format(
             "%d pack(s): %s (+%d%%)",
             i,
@@ -76,7 +67,23 @@ tabCal:AddTextBox("Base Damage (Qa, T, B)", function(value)
             percentIncrease
         ))
     end
+end
+
+-- Criar labels
+tabCal.labels = {}
+for i = 1, 8 do
+    local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
+    table.insert(tabCal.labels, lbl)
+end
+
+-- Criar input com valor padrão
+local defaultText = "200B"
+tabCal:AddTextBox("Base Damage (Qa, T, B)", function(value)
+    updateLabels(parseValue(value))
 end, {
     ["clear"] = false,
-    ["text"] = ""
+    ["text"] = defaultText
 })
+
+-- Calcular automaticamente na abertura
+updateLabels(parseValue(defaultText))
