@@ -262,17 +262,6 @@ tabCal2:AddTextBox("Target Packs Count (0-8)", function(value)
     end
 end, { clear = false, text = tostring(packsCountDur) })
 
--- Switches
-tabCal2:AddSwitch("Use Current Durability", function(state)
-    useCurrentDurability = state
-    updateDisplayDurability()
-end):Set(useCurrentDurability)
-
-tabCal2:AddSwitch("Use Full Target Packs (8)", function(state)
-    useFullPacksDur = state
-    updateDisplayDurability()
-end):Set(useFullPacksDur)
-
 -- Listener
 local player = game.Players.LocalPlayer
 if player and player:FindFirstChild("leaderstats") and player.leaderstats:FindFirstChild("Durability") then
