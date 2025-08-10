@@ -6,7 +6,6 @@ local window = library:AddWindow("Sad TESTTTT", {
     can_resize = false,
 })
 
--- Função para mudar fontes
 local function setFontRecursive(guiObject, font)
     for _, obj in pairs(guiObject:GetDescendants()) do
         if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
@@ -84,11 +83,20 @@ local textBox = tabCal:AddTextBox("Base Damage (Qa, T, B)", function() end, {
     text = defaultText
 })
 
--- Atualização em tempo real
+-- Variável de controle do auto update
+local autoUpdate = true
+
+-- Botão para ativar/desativar atualização automática
+tabCal:AddButton("Calculate", function()
+    autoUpdate = not autoUpdate
+    print("Auto Update: " .. tostring(autoUpdate))
+end)
+
+-- Loop de atualização em tempo real
 spawn(function()
     local lastText = ""
     while wait(0.1) do
-        if textBox.Text ~= lastText then
+        if autoUpdate and textBox.Text ~= lastText then
             lastText = textBox.Text
             updateLabels(parseValue(lastText))
         end
