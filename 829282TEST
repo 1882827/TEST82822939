@@ -277,22 +277,21 @@ end, { clear = false, text = formatValue(incomingDamage) })
 -- Switches
 tabCal2:AddSwitch("Use Current Durability", function(state)
     useCurrentDurability = state
+    -- Atualiza durabilidade exibida imediatamente
+    if useCurrentDurability then
+        durabilityText = formatValue(getCurrentDurability())
+    end
     updateDisplayDurability()
 end):Set(useCurrentDurability)
 
 tabCal2:AddSwitch("Use Full Target Packs (8)", function(state)
     useFullPacksDur = state
+    -- Atualiza quantidade de packs mostrada
+    if useFullPacksDur then
+        packsCountDur = PACKS_MAX
+    end
     updateDisplayDurability()
 end):Set(useFullPacksDur)
-
--- Listener para mudanças de durabilidade
-if player and player:FindFirstChild("leaderstats") and player.leaderstats:FindFirstChild("Durability") then
-    player.leaderstats.Durability.Changed:Connect(function()
-        if useCurrentDurability then
-            updateDisplayDurability()
-        end
-    end)
-end
 
 -- Primeira atualização
 updateDisplayDurability()
