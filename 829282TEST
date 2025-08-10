@@ -20,7 +20,11 @@ spawn(function()
 end)
 
 local tabCal = window:AddTab("Damage Calculator")
-local PACK_MULTIPLIER = 0.5
+
+-- Fatores derivados do exemplo
+local BASE_DAMAGE_FACTOR = 0.1       -- base = 10% da força (0 packs)
+local PACK_FACTOR_PER_PACK = 0.0335  -- cada pack = +3.35% da força
+local PACKS_MAX = 8
 
 -- Converte "200B", "1.5T", "3Qa" para número
 local function parseValue(s)
@@ -52,13 +56,13 @@ local function formatValue(n)
 end
 
 -- Atualiza todos os labels
-local function updateLabels(base)
-    for i = 1, 8 do
-        local multiplier = 1 + (PACK_MULTIPLIER * i)
-        local finalValue = base * multiplier
-        local percentIncrease = PACK_MULTIPLIER * i * 100
+local function updateLabels(strength)
+    local baseDamage = strength * BASE_DAMAGE_FACTOR
+    for i = 1, PACKS_MAX do
+        local finalValue = strength * (BASE_DAMAGE_FACTOR + PACK_FACTOR_PER_PACK * i)
+        local percentIncrease = baseDamage > 0 and ((finalValue / baseDamage) - 1) * 100 or 0
         tabCal.labels[i].Text = string.format(
-            "%d pack(s): %s (+%d%%)",
+            "%d pack(s): %s (+%.2f%%)",
             i,
             formatValue(finalValue),
             percentIncrease
@@ -68,7 +72,7 @@ end
 
 -- Cria os labels
 tabCal.labels = {}
-for i = 1, 8 do
+for i = 1, PACKS_MAX do
     local lbl = tabCal:AddLabel(string.format("%d pack(s): -", i))
     table.insert(tabCal.labels, lbl)
 end
@@ -87,7 +91,7 @@ local textBox = tabCal:AddTextBox("Base Damage (Qa, T, B)", function() end, {
 local autoUpdate = true
 
 -- Botão para ativar/desativar atualização automática
-tabCal:AddButton("Calculate", function()
+tabCal:AddButton("Toggle Auto Update", function()
     autoUpdate = not autoUpdate
     print("Auto Update: " .. tostring(autoUpdate))
 end)
