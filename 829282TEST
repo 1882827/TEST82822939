@@ -164,13 +164,13 @@ local tabCal2 = window:AddTab("Calculator 2")
 -- Configuração
 local PACKS_MAX = 8
 local ULTIMATE_BOOST_PERCENT = 75     -- % de boost do Ultimate
-local PETS_BOOST_PER_PACK = 33.125    -- % de boost total por pack (exemplo da imagem)
+local PETS_BOOST_PER_PACK = 33.125    -- % de boost total por pack
 local ATTACK_SPEED = 1.3              -- velocidade de ataque (hits/segundo)
 
--- Funções auxiliares (reutilizadas)
+-- Funções auxiliares
 local function parseValue(s)
     if not s then return 0 end
-    s = s:upper():gsub("%s", ""):gsub(",", "")
+    s = tostring(s):upper():gsub("%s", ""):gsub(",", "")
     local suffixes = { B = 1e9, T = 1e12, QA = 1e15 }
     local numPart, suf = s:match("^([%-]?[%d%.]+)(%a*)$")
     if not numPart then return 0 end
@@ -195,13 +195,23 @@ local function formatValue(n)
     end
 end
 
+-- Função para pegar durabilidade atual
 local function getCurrentDurability()
     local player = game.Players.LocalPlayer
     if player and player:FindFirstChild("leaderstats") and player.leaderstats:FindFirstChild("Durability") then
-        return tonumber(player.leaderstats.Durability.Value) or 0
+        return parseValue(player.leaderstats.Durability.Value)
     end
     return 0
 end
+
+-- 🔹 Inicialização com seus valores reais
+local player = game.Players.LocalPlayer
+local initialDurability = getCurrentDurability()
+local durabilityText = formatValue(initialDurability)
+local packsCountDur = PACKS_MAX
+local useCurrentDurability = true
+local useFullPacksDur = true
+local incomingDamage = parseValue("2.6Qa") -- pode mudar depois
 
 -- Labels
 local lblPlayerDur = tabCal2:AddLabel("Player Durability: -")
@@ -211,14 +221,7 @@ local lblTotalHP   = tabCal2:AddLabel("Total Health: -")
 local lblHitsKill  = tabCal2:AddLabel("Hits to Kill: -")
 local lblTimeKill  = tabCal2:AddLabel("Time to Kill: -")
 
--- Variáveis
-local durabilityText = "3.13Qa"
-local packsCountDur = 8
-local useCurrentDurability = true
-local useFullPacksDur = true
-local incomingDamage = parseValue("2.6Qa") -- Exemplo de dano por hit
-
--- Atualização
+-- Função principal de atualização
 local function updateDisplayDurability()
     local dur = useCurrentDurability and getCurrentDurability() or parseValue(durabilityText)
     local packs = useFullPacksDur and PACKS_MAX or packsCountDur
@@ -231,18 +234,22 @@ local function updateDisplayDurability()
     local totalHealth = dur + ultimateBoostValue + petsBoostValue
 
     -- Cálculos de hits
-    local hitsToKill = incomingDamage > 0 and (totalHealth / incomingDamage) or 0
-    local timeToKill = hitsToKill / ATTACK_SPEED
+    local hitsToKill = (incomingDamage > 0) and math.max(1, math.ceil(totalHealth / incomingDamage)) or 0
 
-    -- Labels
+    -- Tempo em segundos
+    local timeToKillSec = (ATTACK_SPEED > 0) and (hitsToKill / ATTACK_SPEED) or 0
+    local minutes = math.floor(timeToKillSec / 60)
+    local seconds = timeToKillSec - (minutes * 60)
+
+    -- Atualiza Labels
     lblPlayerDur.Text = string.format("Player Durability: %s", formatValue(dur))
     lblUltimate.Text  = string.format("Ultimate Boost: %s (+%d%%)", formatValue(ultimateBoostValue), ULTIMATE_BOOST_PERCENT)
-    lblPets.Text      = string.format("Pets Boost (%d): %s (+%d%%)", packs, formatValue(petsBoostValue), PETS_BOOST_PER_PACK * packs)
+    lblPets.Text      = string.format("Pets Boost (%d): %s (+%.3f%%)", packs, formatValue(petsBoostValue), PETS_BOOST_PER_PACK * packs)
     lblTotalHP.Text   = string.format("Total Health: %s", formatValue(totalHealth))
     lblTotalHP.TextColor3 = Color3.fromRGB(0, 255, 255)
 
-    lblHitsKill.Text  = string.format("Hits to Kill: %.1f", hitsToKill)
-    lblTimeKill.Text  = string.format("Time to Kill: %dm %.1fs", math.floor(timeToKill / 60), timeToKill % 60)
+    lblHitsKill.Text  = string.format("Hits to Kill: %d", hitsToKill)
+    lblTimeKill.Text  = string.format("Time to Kill: %dm %.1fs", minutes, seconds)
 end
 
 -- Inputs
@@ -262,8 +269,23 @@ tabCal2:AddTextBox("Target Packs Count (0-8)", function(value)
     end
 end, { clear = false, text = tostring(packsCountDur) })
 
--- Listener
-local player = game.Players.LocalPlayer
+tabCal2:AddTextBox("Incoming Damage (per hit)", function(value)
+    incomingDamage = parseValue(value)
+    updateDisplayDurability()
+end, { clear = false, text = formatValue(incomingDamage) })
+
+-- Switches
+tabCal2:AddSwitch("Use Current Durability", function(state)
+    useCurrentDurability = state
+    updateDisplayDurability()
+end):Set(useCurrentDurability)
+
+tabCal2:AddSwitch("Use Full Target Packs (8)", function(state)
+    useFullPacksDur = state
+    updateDisplayDurability()
+end):Set(useFullPacksDur)
+
+-- Listener para mudanças de durabilidade
 if player and player:FindFirstChild("leaderstats") and player.leaderstats:FindFirstChild("Durability") then
     player.leaderstats.Durability.Changed:Connect(function()
         if useCurrentDurability then
@@ -272,5 +294,5 @@ if player and player:FindFirstChild("leaderstats") and player.leaderstats:FindFi
     end)
 end
 
--- Inicialização
+-- Primeira atualização
 updateDisplayDurability()
