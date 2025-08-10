@@ -273,12 +273,22 @@ tabCal2:AddTextBox("Incoming Damage (per hit)", function(value)
     updateDisplayDurability()
 end, { clear = false, text = formatValue(incomingDamage) })
 
+-- Switches
+tabCal2:AddSwitch("Use Current Durability", function(state)
+    useCurrentDurability = state
+    updateDisplayDurability()
+end, { state = useCurrentDurability })
+
+tabCal2:AddSwitch("Use Full Packs", function(state)
+    useFullPacksDur = state
+    updateDisplayDurability()
+end, { state = useFullPacksDur })
+
 -- 🔹 Atualização automática ao mudar a durabilidade no jogo
 local player = game.Players.LocalPlayer
 if player and player:FindFirstChild("leaderstats") and player.leaderstats:FindFirstChild("Durability") then
     player.leaderstats.Durability.Changed:Connect(function()
         if useCurrentDurability then
-            durabilityText = formatValue(getCurrentDurability())
             updateDisplayDurability()
         end
     end)
