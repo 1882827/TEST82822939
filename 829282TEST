@@ -221,7 +221,13 @@ local lblTimeKill  = tabCal2:AddLabel("Time to Kill: -")
 
 -- Função principal de atualização
 local function updateDisplayDurability()
-    local dur = useCurrentDurability and getCurrentDurability() or parseValue(durabilityText)
+    local dur
+    if useCurrentDurability then
+        dur = getCurrentDurability()
+    else
+        dur = parseValue(durabilityText)
+    end
+
     local packs = useFullPacksDur and PACKS_MAX or packsCountDur
 
     -- Boosts
@@ -250,9 +256,7 @@ end
 -- Inputs
 tabCal2:AddTextBox("Durability Input", function(value)
     durabilityText = value
-    if not useCurrentDurability then
-        updateDisplayDurability()
-    end
+    updateDisplayDurability()
 end, { clear = false, text = durabilityText })
 
 tabCal2:AddTextBox("Target Packs Count (0-8)", function(value)
