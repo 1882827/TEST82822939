@@ -21,6 +21,10 @@ end)
 
 local tabCal = window:AddTab("Damage Calculator")
 
+-- Label título
+local lblTitleDamage = tabCal:AddLabel("Strength To Damage")
+lblTitleDamage.TextSize = 20
+
 --------------------------------------------------
 -- 🔹 Configuração
 --------------------------------------------------
@@ -155,10 +159,11 @@ end
 --------------------------------------------------
 updateDisplay()
 
---------------------------------------------------
--- 🔹 Tab 2: Calculator 2 (Durability / Hit Calculations)
---------------------------------------------------
 local tabCal2 = window:AddTab("Calculator 2")
+
+-- Label título
+local lblTitleHits = tabCal2:AddLabel("Hit Calculations")
+lblTitleHits.TextSize = 20
 
 -- Configuração
 local PACKS_MAX = 8
